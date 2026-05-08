@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── NextAuth.js v5 required models ───────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // hashed con bcryptjs (para Credentials provider)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  profile   UserProfile?
+  servicios Servicio[]
+  equipos   Equipo[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ─── ClimaTech domain models ───────────────────────────────────────────────────
+
+model UserProfile {
+  id        String   @id @default(cuid())
+  telefono  String?
+  rol       String   @default("cliente") // "cliente" | "admin"
+  comuna    String?
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Equipo {
+  id         String     @id @default(cuid())
+  marca      String
+  modelo     String
+  btu        Int
+  ubicacion  String     // "Dormitorio Principal", "Living", etc.
+  instalado  DateTime?
+  garantia   DateTime?
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  servicios  Servicio[]
+  createdAt  DateTime   @default(now())
+}
+
+model Servicio {
+  id        String   @id @default(cuid())
+  tipo      String   // "preventivo" | "correctivo" | "limpieza_filtros" | "carga_gas" | "revision_electrica" | "instalacion"
+  estado    String   @default("pendiente") // "pendiente" | "confirmado" | "en_proceso" | "completado" | "cancelado"
+  fecha     DateTime
+  hora      String?  // "10:00"
+  tecnico   String?
+  notas     String?
+  duracion  String?  // "1 hora", "2 horas"
+  precio    Int?     // CLP
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  equipoId  String?
+  equipo    Equipo?  @relation(fields: [equipoId], references: [id])
+  createdAt DateTime @default(now())
+}

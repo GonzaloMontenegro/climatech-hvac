@@ -1,72 +1,11 @@
-// Datos MOCK para simulación demo completa de la plataforma HVAC
-
-export const MOCK_EQUIPOS = [
-  {
-    id: "eq-001",
-    sku: "INV-9000-SAMSUNG",
-    marca: "Samsung",
-    modelo: "Wind-Free Inverter",
-    capacidadBTU: 9000,
-    precioCLP: 649000,
-    stock: 12,
-    categoria: "Split",
-    eficiencia: "A++",
-    color: "#00a8e8",
-    imagen: null,
-    habilitadoECommerce: true,
-    descripcion: "Tecnología Wind-Free™ que distribuye el aire frío a través de 23.000 microorificios sin corriente directa de viento.",
-  },
-  {
-    id: "eq-002",
-    sku: "INV-12000-LG",
-    marca: "LG",
-    modelo: "Dualcool Premium",
-    capacidadBTU: 12000,
-    precioCLP: 829000,
-    stock: 8,
-    categoria: "Split",
-    eficiencia: "A+++",
-    color: "#c8102e",
-    imagen: null,
-    habilitadoECommerce: true,
-    descripcion: "Motor Inverter Dual de LG con DUALCOOL, el más eficiente de su categoría según el protocolo SEC.",
-  },
-  {
-    id: "eq-003",
-    sku: "INV-18000-TRANE",
-    marca: "Trane",
-    modelo: "XR15 Comfort",
-    capacidadBTU: 18000,
-    precioCLP: 1290000,
-    stock: 4,
-    categoria: "Split",
-    eficiencia: "A+",
-    color: "#e87722",
-    imagen: null,
-    habilitadoECommerce: true,
-    descripcion: "Equipo residencial de alta capacidad, ideal para espacios de hasta 30m². Compresor scroll de alta eficiencia.",
-  },
-  {
-    id: "eq-004",
-    sku: "VRF-36000-DAIKIN",
-    marca: "Daikin",
-    modelo: "VRV IV S",
-    capacidadBTU: 36000,
-    precioCLP: 3450000,
-    stock: 2,
-    categoria: "VRF/VRV",
-    eficiencia: "A++",
-    color: "#005bac",
-    imagen: null,
-    habilitadoECommerce: true,
-    descripcion: "Sistema VRF residencial compacto. Hasta 9 unidades interiores controladas desde una sola unidad exterior.",
-  },
-];
+// Datos mock para demo — se reemplazarán por queries a Prisma/PostgreSQL
+// cuando la base de datos de Render esté conectada
 
 export const MOCK_EQUIPOS_CLIENTE = [
   {
     id: "ceq-001",
-    modelo: "Samsung Wind-Free 9000 BTU",
+    marca: "Samsung",
+    modelo: "Wind-Free Inverter 9000 BTU",
     ubicacion: "Dormitorio Principal",
     instalado: "2023-08-15",
     garantiaHasta: "2026-08-15",
@@ -75,20 +14,21 @@ export const MOCK_EQUIPOS_CLIENTE = [
     proximoMantenimiento: "2025-07-10",
     estado: "operativo",
     eficiencia: 94,
-    marca: "Samsung",
+    btu: 9000,
   },
   {
     id: "ceq-002",
-    modelo: "LG Dualcool 12000 BTU",
+    marca: "LG",
+    modelo: "Dualcool Premium 12000 BTU",
     ubicacion: "Living Comedor",
     instalado: "2022-12-01",
     garantiaHasta: "2025-12-01",
     estadoGarantia: "por vencer",
     ultimoMantenimiento: "2024-11-20",
     proximoMantenimiento: "2025-05-20",
-    estado: "mantenimiento",
+    estado: "requiere_servicio",
     eficiencia: 78,
-    marca: "LG",
+    btu: 12000,
   },
 ];
 
@@ -102,16 +42,18 @@ export const MOCK_CITAS = [
     hora: "10:00",
     estado: "confirmada",
     duracion: "2 horas",
+    precio: 35000,
   },
   {
     id: "cita-002",
-    tipo: "Revisión Técnica",
+    tipo: "Limpieza de Filtros",
     equipo: "LG Dualcool - Living",
     tecnico: "Patricia Jara",
     fecha: "2025-06-05",
     hora: "14:30",
     estado: "pendiente",
     duracion: "1 hora",
+    precio: 18000,
   },
   {
     id: "cita-003",
@@ -122,6 +64,7 @@ export const MOCK_CITAS = [
     hora: "09:00",
     estado: "completada",
     duracion: "2 horas",
+    precio: 35000,
   },
 ];
 
@@ -132,23 +75,24 @@ export const MOCK_TECNICOS = [
   { id: "tec-004", nombre: "Claudia Rojas", zona: "Las Condes / Vitacura", citasHoy: 1, estado: "libre", rating: 5.0 },
 ];
 
+export const MOCK_SERVICIOS_TIPO = [
+  { id: "preventivo", label: "Mantenimiento Preventivo", duracion: "2 horas", precio: 35000, icon: "🔧" },
+  { id: "correctivo", label: "Mantenimiento Correctivo", duracion: "Variable", precio: null, icon: "🛠️" },
+  { id: "limpieza_filtros", label: "Limpieza de Filtros", duracion: "1 hora", precio: 18000, icon: "💧" },
+  { id: "carga_gas", label: "Carga de Gas Refrigerante", duracion: "1-2 horas", precio: 45000, icon: "🧊" },
+  { id: "revision_electrica", label: "Revisión Eléctrica", duracion: "1 hora", precio: 25000, icon: "⚡" },
+  { id: "instalacion", label: "Instalación de Equipo", duracion: "3-4 horas", precio: 60000, icon: "📦" },
+];
+
 export const MOCK_METRICAS_ADMIN = {
-  ventasMes: 14850000,
-  ventasMesAnterior: 11200000,
+  ingresosMes: 4850000,
+  ingresosMesAnterior: 3800000,
   citasMes: 47,
   citasCompletadas: 38,
   clientesActivos: 124,
   clientesNuevosMes: 12,
-  ticketPromedio: 316000,
+  ticketPromedio: 38000,
   nps: 87,
-  equiposVendidosMes: 23,
+  serviciosMes: 47,
   ingresosTecnicos: 2840000,
 };
-
-export const MOCK_ORDENES = [
-  { id: "ORD-2025-001", cliente: "Carlos Mendoza", equipo: "Samsung 9000 BTU", total: 749000, estado: "completada", fecha: "2025-04-10" },
-  { id: "ORD-2025-002", cliente: "Ana García", equipo: "LG 12000 BTU", total: 929000, estado: "en_proceso", fecha: "2025-04-12" },
-  { id: "ORD-2025-003", cliente: "Pedro Fuentes", equipo: "Trane 18000 BTU + Instalación", total: 1490000, estado: "pendiente", fecha: "2025-04-14" },
-  { id: "ORD-2025-004", cliente: "María López", equipo: "Samsung 9000 BTU", total: 749000, estado: "completada", fecha: "2025-04-08" },
-  { id: "ORD-2025-005", cliente: "Juan Riquelme", equipo: "Daikin VRV 36000 BTU", total: 3650000, estado: "en_proceso", fecha: "2025-04-13" },
-];
