@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --color-brand-primary: #1e3a5f;
+  --color-brand-secondary: #0ea5e9;
+  --color-brand-cta: #ea580c;
+  --color-brand-cta-hover: #c2410c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-inter, sans-serif);
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Animaciones micro */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.animate-pulse-slow { animation: pulse-slow 2s ease infinite; }
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Gradiente de fondo para hero */
+.hero-gradient {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0c1f35 40%, #0e2340 70%, #1a3a5c 100%);
+}
+
+/* Etiqueta de eficiencia SEC */
+.sec-label-A { background: #006f3c; color: white; }
+.sec-label-B { background: #2e9e47; color: white; }
+.sec-label-C { background: #8bc34a; color: white; }
