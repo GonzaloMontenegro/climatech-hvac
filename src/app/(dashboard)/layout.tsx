@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/lib/auth/demoAuth";
 import { useEffect } from "react";
 
 const NAV = [
@@ -12,23 +12,20 @@ const NAV = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (status === "unauthenticated") router.replace("/login");
-    // @ts-expect-error custom session field
-    if (status === "authenticated" && session?.user?.rol === "admin") router.replace("/admin");
-  }, [status, session, router]);
+    if (!loading && !user) router.replace("/login");
+    if (!loading && user?.rol === "admin") router.replace("/admin");
+  }, [loading, user, router]);
 
-  if (status === "loading" || !session) return (
+  if (loading || !user) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
     </div>
   );
-
-  const user = session.user;
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -45,10 +42,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">
-              {user?.name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "U"}
+              {user?.avatar ?? "U"}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-slate-800 text-sm truncate">{user?.name ?? "Cliente"}</p>
+              <p className="font-semibold text-slate-800 text-sm truncate">{user?.nombre ?? "Cliente"}</p>
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
@@ -77,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span>🔧</span> Agendar servicio
           </Link>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => { signOut(); router.push("/"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
           >
             <span>🚪</span> Cerrar sesión

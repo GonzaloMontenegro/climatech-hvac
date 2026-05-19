@@ -35,7 +35,7 @@ export default function ProductPage({ params }: { params: Promise<{ equipo_id: s
   const total = eq.precioCLP + (selectedService ? (SERVICIOS_INSTALACION.find(s => s.id === selectedService)?.precioCLP || 0) : 0);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white text-sm">❄</div>

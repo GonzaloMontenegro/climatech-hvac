@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { adminDb } from "@/lib/firebase/admin";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const client = new google.auth.JWT(
-      process.env.FIREBASE_CLIENT_EMAIL,
-      undefined,
-      process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      ["https://www.googleapis.com/auth/content"]
-    );
+    const client = new google.auth.JWT({
+      email: process.env.FIREBASE_CLIENT_EMAIL,
+      key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      scopes: ["https://www.googleapis.com/auth/content"]
+    });
 
     await client.authorize();
     
@@ -22,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (!merchantId) throw new Error("MERCHANT_ACCOUNT_ID is missing");
 
     const snapshot = await adminDb.collection("equipos_catalogo").where("habilitadoECommerce", "==", true).get();
-    const batchRequests: any[] = [];
+    const batchRequests: Record<string, unknown>[] = [];
 
     snapshot.docs.forEach((doc, idx) => {
       const data = doc.data();
@@ -59,8 +58,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, count: batchRequests.length }, { status: 200 });
 
-  } catch (err: any) {
-    console.error("Merchant Sync Err:", err.message);
+  } catch (err: unknown) {
+    console.error("Merchant Sync Err:", (err as Error).message);
     return NextResponse.json({ error: "Failed to sync catalog" }, { status: 500 });
   }
 }

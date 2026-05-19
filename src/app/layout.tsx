@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { NextAuthProvider } from "@/lib/auth/provider";
+import { AuthProvider } from "@/lib/auth/demoAuth";
 import "./globals.css";
 
 const inter = Inter({
@@ -52,7 +52,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased selection:bg-orange-200 selection:text-orange-900`}
       >
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

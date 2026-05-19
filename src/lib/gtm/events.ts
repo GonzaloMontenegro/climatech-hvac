@@ -2,11 +2,11 @@ import { CartItem } from '../store/cartStore';
 
 declare global {
   interface Window {
-    dataLayer: any[];
+    dataLayer: Record<string, unknown>[];
   }
 }
 
-const pushEvent = (eventData: any) => {
+const pushEvent = (eventData: Record<string, unknown>) => {
   if (typeof window !== 'undefined') {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(eventData);

@@ -2,8 +2,8 @@
 
 :root {
   --font-inter: 'Inter', sans-serif;
-  --color-brand-primary: #1e3a5f;
-  --color-brand-secondary: #0ea5e9;
+  --color-brand-primary: #0f172a; /* Slate 900 */
+  --color-brand-secondary: #0ea5e9; /* Sky 500 */
   --color-brand-cta: #ea580c;
   --color-brand-cta-hover: #c2410c;
 }
@@ -14,43 +14,78 @@
 
 body {
   font-family: var(--font-inter, sans-serif);
-  background: #f8fafc;
-  color: #0f172a;
+  background: #090d16; /* Pizarra oscura por defecto */
+  color: #f8fafc;
 }
 
-/* Scrollbar minimalista */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-/* Animaciones micro */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Scrollbar minimalista y premium */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-.animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+::-webkit-scrollbar-track {
+  background: #090d16;
 }
-.animate-pulse-slow { animation: pulse-slow 2s ease infinite; }
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 99px;
+  border: 2px solid #090d16;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
 
-/* Glassmorphism utility */
-.glass {
-  background: rgba(255,255,255,0.7);
+/* Efecto de Vidrio (Glassmorphism) Oscuro Premium */
+.glass-premium {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-premium-light {
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Gradiente de fondo para hero */
-.hero-gradient {
-  background: linear-gradient(135deg, #1e3a5f 0%, #0c1f35 40%, #0e2340 70%, #1a3a5c 100%);
+.glass-nav {
+  background: rgba(9, 13, 22, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Resplandor neón sutil (Neon Glow) */
+.glow-blue {
+  box-shadow: 0 0 40px -5px rgba(14, 165, 233, 0.15);
+}
+
+.glow-orange {
+  box-shadow: 0 0 40px -5px rgba(234, 88, 12, 0.2);
+}
+
+/* Gradientes animados fluidos */
+@keyframes fluid-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-fluid-bg {
+  background-size: 200% 200%;
+  animation: fluid-gradient 15s ease infinite;
 }
 
 /* Etiqueta de eficiencia SEC */
 .sec-label-A { background: #006f3c; color: white; }
 .sec-label-B { background: #2e9e47; color: white; }
 .sec-label-C { background: #8bc34a; color: white; }
+

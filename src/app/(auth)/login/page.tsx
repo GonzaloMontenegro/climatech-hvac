@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { useAuth } from "@/lib/auth/demoAuth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,16 +17,12 @@ export default function LoginPage() {
     setError("");
     setSubmitting(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    const result = await signIn(email, password);
 
     setSubmitting(false);
 
-    if (result?.error) {
-      setError("Correo o contraseña incorrectos.");
+    if (result.error) {
+      setError(result.error);
       return;
     }
 

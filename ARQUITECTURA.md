@@ -6,90 +6,79 @@
 /
 ├── app/
 │   ├── (auth)/                 # Rutas relacionadas a la autenticación
-│   │   ├── login/page.tsx
-│   │   └── register/page.tsx
+│   │   └── login/page.tsx
 │   ├── (dashboard)/            # Dashboard del cliente (baja fricción)
 │   │   ├── dashboard/page.tsx
-│   │   ├── mis-equipos/page.tsx
-│   │   └── garantias/page.tsx
+│   │   └── layout.tsx
 │   ├── (admin)/                # Panel de control operativo (alta densidad, protegido)
 │   │   ├── admin/page.tsx
-│   │   ├── inventario/page.tsx
-│   │   └── asignaciones/page.tsx
+│   │   └── layout.tsx
 │   ├── e-commerce/             # Catálogo y carrito de compras
 │   │   ├── [equipo_id]/page.tsx
-│   │   └── carrito/page.tsx
-│   ├── api/                    # Rutas API de Next.js (ej. Merchant API)
-│   ├── layout.tsx              # Layout raíz (GoogleTagManager)
-│   ├── page.tsx                # Landing page (Motor de Leads / Calculadora BTU)
-│   └── globals.css             # Tailwind y CSS global
+│   │   └── page.tsx
+│   ├── climatizacion/          # Páginas SEO programáticas
+│   │   └── [servicio]/[comuna]/page.tsx
+│   ├── api/                    # Rutas API de Next.js
+│   ├── layout.tsx              # Layout raíz 
+│   ├── page.tsx                # Landing page principal
+│   └── globals.css             # Tailwind v4 y CSS global
 ├── components/
 │   ├── ui/                     # Componentes visuales genéricos
-│   ├── hvac/                   # Componentes específicos (Calculadora BTU, Etiquetas SEC)
+│   ├── seo/                    # Componentes SEO (LocalSchema)
 │   └── layout/                 # Componentes de diseño estructural
 ├── lib/                        # Lógica de negocio y utilidades
-│   ├── firebase/               # Inicialización (auth, firestore)
+│   ├── auth/                   # Lógica de Autenticación (NextAuth / Firebase Auth)
+│   ├── db.ts                   # Instancia de Base de Datos (Prisma)
+│   ├── firebase/               # Inicialización de Firebase (Client / Admin)
 │   ├── store/                  # Estado global (Zustand)
-│   ├── gtm/                    # Utilidades analítica (view_item, etc.)
-│   └── utils.ts
+│   ├── gtm/                    # Utilidades analítica
+│   ├── actions/                # Server Actions de Next.js
+│   └── mockData.ts             # Datos temporales para desarrollo UI
 ├── types/                      # Interfaces TypeScript globales
 ├── public/                     # Recursos estáticos
-├── next.config.mjs             # Configuración de Next.js
-├── tailwind.config.ts          # Configuración de estilización
+├── next.config.ts              # Configuración de Next.js
+├── tailwind.config.ts          # Configuración de estilización (si aplica)
 ├── tsconfig.json
 └── package.json
 ```
 
-## 2. Esquema NoSQL de Firebase (Firestore)
+## 2. Esquema de Base de Datos (Definición Base)
 
-### Colección: `usuarios`
-- `uid` (String, PK): ID del usuario de Auth.
-- `rol` (String): 'cliente' | 'tecnico' | 'admin' (sincronizado con custom claims).
+*(Nota: Actualmente el proyecto incluye dependencias de Prisma y PostgreSQL en esta rama, pero el esquema se define bajo la óptica de Firebase/NoSQL según `GEMINI.md`)*
+
+### Colección/Tabla: `usuarios`
+- `id` (PK): ID del usuario.
+- `rol` (String): 'cliente' | 'tecnico' | 'admin'.
 - `nombre` (String)
 - `email` (String)
 - `telefono` (String)
-- `direccion` (Map):
-  - `comuna` (String)
-  - `calle` (String)
-- `fechaRegistro` (Timestamp)
+- `direccion` (JSON/Map): comuna y calle.
+- `fechaRegistro` (DateTime)
 
-### Colección: `equipos_catalogo`
-- `id` (String, PK)
+### Colección/Tabla: `equipos_catalogo`
+- `id` (PK)
 - `sku` (String)
 - `marca` (String)
 - `modelo` (String)
 - `capacidadBTU` (Number)
 - `precioCLP` (Number)
 - `stock` (Number)
-- `etiquetaSEC_url` (String) # PE Nº 1/26/2:2020
-- `especificaciones` (Map)
+- `etiquetaSEC_url` (String)
+- `especificaciones` (JSON/Map)
 - `habilitadoECommerce` (Boolean)
 
-### Colección: `servicios_instalacion`
-- `id` (String, PK)
-- `nombre` (String) # ej. 'Instalación Recoleta'
+### Colección/Tabla: `servicios_instalacion`
+- `id` (PK)
+- `nombre` (String)
 - `precioCLP` (Number)
-- `comunasDisponibles` (Array<String>)
+- `comunasDisponibles` (Array)
 - `tiempoEstimadoHoras` (Number)
 
-### Colección: `citas_mantenimiento`
-- `id` (String, PK)
-- `clienteId` (Reference -> usuarios)
-- `tecnicoId` (Reference -> usuarios, opcional)
+### Colección/Tabla: `citas_mantenimiento`
+- `id` (PK)
+- `clienteId` (FK -> usuarios)
+- `tecnicoId` (FK -> usuarios, opcional)
 - `equipoClienteId` (String)
-- `fechaProgramada` (Timestamp)
+- `fechaProgramada` (DateTime)
 - `estado` (String): 'pendiente' | 'confirmada' | 'en_ruta' | 'completada' | 'cancelada'
 - `tipoServicio` (String): 'predictivo' | 'correctivo' | 'instalacion'
-
-### Colección: `ordenes_telemetria`
-- `id` (String, PK)
-- `clienteId` (Reference -> usuarios)
-- `estadoPago` (String): 'pendiente' | 'pagado' | 'rechazado'
-- `items` (Array):
-  - `tipo` (String): 'equipo' | 'servicio'
-  - `itemId` (String)
-  - `cantidad` (Number)
-  - `precioUnitario` (Number)
-- `totalCLP` (Number)
-- `eventosGTM_emitidos` (Boolean)
-- `fechaOrden` (Timestamp)

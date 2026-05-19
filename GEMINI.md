@@ -6,10 +6,11 @@ Todos los agentes y subagentes deben apegarse estrictamente a las siguientes tec
 - **Librería UI**: React.
 - **Estilización**: Tailwind CSS.
 - **Lenguaje**: TypeScript con tipado estricto (strict mode).
-- **Backend as a Service (BaaS)**: Suite completa de Firebase.
-  - *Autenticación*: Firebase Authentication.
-  - *Base de Datos*: Firestore (NoSQL).
-  - *Despliegue*: Firebase App Hosting.
+- **Base de Datos**: PostgreSQL hospedado en Render.
+- **ORM**: Prisma.
+- **Autenticación**: NextAuth.js o Autenticación por Base de Datos.
+- **Despliegue**: Render.
+
 
 ## 2. Paradigma de Trabajo
 - **Prioridad de Permiso (Permission-First Workflow)**: Bajo ninguna circunstancia alterar el sistema de archivos, ejecutar comandos en la terminal de despliegue, o crear arquitecturas sin autorización explícita utilizando el comando "PLAN APROBADO".
