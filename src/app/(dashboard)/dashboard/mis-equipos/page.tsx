@@ -1,10 +1,33 @@
 "use client";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth/demoAuth";
 import { MOCK_EQUIPOS_CLIENTE } from "@/lib/mockData";
 
+// Ampliamos el mock con reportes técnicos y estado de mantenimiento
+const INITIAL_EQUIPOS = MOCK_EQUIPOS_CLIENTE.map((eq, i) => ({
+  ...eq,
+  mantenimientoRealizado: i === 0, // El primero realizado, el segundo pendiente
+  reporteTecnico: i === 0 
+    ? "Limpieza química de unidad interior y exterior, sanitización de turbina y filtros. Medición de presión de gas refrigerante R410a óptima. Consumo eléctrico en rango nominal."
+    : "Revisión de conexiones eléctricas realizada. Se sugiere limpieza de filtros de aire en el próximo servicio por acumulación moderada de polvo."
+}));
+
 export default function MisEquiposPage() {
+  const { user } = useAuth();
+  const [equipos, setEquipos] = useState(INITIAL_EQUIPOS);
   const [selected, setSelected] = useState<string | null>(null);
-  const eq = MOCK_EQUIPOS_CLIENTE.find(e => e.id === selected);
+
+  const eq = equipos.find(e => e.id === selected);
+  const isAdmin = user?.rol === "admin";
+
+  const handleToggleMantenimiento = (id: string) => {
+    setEquipos(prev => prev.map(e => {
+      if (e.id === id) {
+        return { ...e, mantenimientoRealizado: !e.mantenimientoRealizado };
+      }
+      return e;
+    }));
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -16,10 +39,13 @@ export default function MisEquiposPage() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Lista */}
         <div className="space-y-4">
-          {MOCK_EQUIPOS_CLIENTE.map(equipo => (
-            <button key={equipo.id} onClick={() => setSelected(equipo.id === selected ? null : equipo.id)}
-              className={`w-full bg-white border-2 rounded-2xl p-5 text-left transition-all hover:shadow-lg ${selected === equipo.id ? 'border-orange-500 shadow-lg shadow-orange-100' : 'border-slate-200'}`}>
-              <div className="flex items-start gap-4">
+          {equipos.map(equipo => (
+            <div key={equipo.id} 
+              className={`w-full bg-white border-2 rounded-2xl p-5 text-left transition-all hover:shadow-lg relative ${selected === equipo.id ? 'border-orange-500 shadow-lg shadow-orange-100' : 'border-slate-200'}`}>
+              <button 
+                onClick={() => setSelected(equipo.id === selected ? null : equipo.id)}
+                className="w-full text-left flex items-start gap-4"
+              >
                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">❄️</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -29,19 +55,33 @@ export default function MisEquiposPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400">{equipo.ubicacion}</p>
-                  <div className="mt-3">
-                    <div className="flex justify-between text-xs text-slate-400 mb-1">
-                      <span>Eficiencia operativa</span>
-                      <span className="font-bold text-slate-600">{equipo.eficiencia}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all ${equipo.eficiencia > 85 ? 'bg-green-500' : equipo.eficiencia > 60 ? 'bg-orange-400' : 'bg-red-400'}`}
-                        style={{ width: `${equipo.eficiencia}%` }} />
-                    </div>
-                  </div>
                 </div>
+              </button>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs text-slate-400 font-medium">Mantenimiento Realizado:</span>
+                {isAdmin ? (
+                  <button
+                    onClick={() => handleToggleMantenimiento(equipo.id)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all border ${
+                      equipo.mantenimientoRealizado 
+                        ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100" 
+                        : "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100"
+                    }`}
+                  >
+                    {equipo.mantenimientoRealizado ? "✅ Completado (Click cambiar)" : "⚠️ Pendiente (Click cambiar)"}
+                  </button>
+                ) : (
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                    equipo.mantenimientoRealizado 
+                      ? "bg-green-100 text-green-700" 
+                      : "bg-orange-100 text-orange-700"
+                  }`}>
+                    {equipo.mantenimientoRealizado ? "Completado" : "Pendiente"}
+                  </span>
+                )}
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
@@ -68,14 +108,17 @@ export default function MisEquiposPage() {
                 </div>
               ))}
             </div>
-            <div className={`rounded-xl p-4 ${eq.estadoGarantia === 'vigente' ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
-              <p className={`text-sm font-bold ${eq.estadoGarantia === 'vigente' ? 'text-green-800' : 'text-orange-800'}`}>
-                🛡 Garantía {eq.estadoGarantia === 'vigente' ? 'vigente' : '⚠ Por vencer'}
-              </p>
-              <p className={`text-xs mt-1 ${eq.estadoGarantia === 'vigente' ? 'text-green-600' : 'text-orange-600'}`}>
-                Válida hasta el {new Date(eq.garantiaHasta).toLocaleDateString('es-CL')}
+
+            {/* Reemplazamos la etiqueta Garantía Vigente por Detalle de Reporte Técnico */}
+            <div className="bg-orange-50/50 border border-orange-150 rounded-2xl p-4 space-y-2">
+              <h4 className="font-bold text-blue-950 text-sm flex items-center gap-1.5">
+                <span>📋</span> Reporte Técnico del Servicio
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {eq.reporteTecnico}
               </p>
             </div>
+
             <a href="/dashboard/citas"
               className="block w-full text-center bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition-all">
               Agendar mantenimiento →

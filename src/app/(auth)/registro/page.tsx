@@ -70,7 +70,7 @@ export default function RegistroPage() {
                 onChange={set("nombre")}
                 required
                 placeholder="Juan Pérez"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm text-slate-800"
               />
             </div>
 
@@ -83,7 +83,7 @@ export default function RegistroPage() {
                 onChange={set("email")}
                 required
                 placeholder="tu@correo.cl"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm text-slate-800"
               />
             </div>
 
@@ -95,7 +95,7 @@ export default function RegistroPage() {
                 value={form.telefono}
                 onChange={set("telefono")}
                 placeholder="+56 9 XXXX XXXX"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm text-slate-800"
               />
             </div>
 
@@ -109,7 +109,7 @@ export default function RegistroPage() {
                   onChange={set("password")}
                   required
                   placeholder="Min. 8 caracteres"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm text-slate-800"
                 />
               </div>
               <div>
@@ -121,7 +121,7 @@ export default function RegistroPage() {
                   onChange={set("confirmar")}
                   required
                   placeholder="Repetir"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm text-slate-800"
                 />
               </div>
             </div>
