@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth/demoAuth";
 
 export default function RegistroPage() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", password: "", confirmar: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -25,14 +25,18 @@ export default function RegistroPage() {
     }
 
     setSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 800)); // Mock API call
 
-    // Como estamos en fase visual sin DB, logueamos al usuario de demo por defecto
-    const result = await signIn("demo@cliente.cl", "demo1234");
+    const result = await signUp({
+      nombre: form.nombre,
+      email: form.email,
+      telefono: form.telefono,
+      password: form.password
+    });
+
+    setSubmitting(false);
 
     if (result.error) {
       setError(result.error);
-      setSubmitting(false);
       return;
     }
 

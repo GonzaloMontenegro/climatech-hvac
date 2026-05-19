@@ -1,15 +1,73 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth/demoAuth";
-import { MOCK_CITAS, MOCK_EQUIPOS_CLIENTE } from "@/lib/mockData";
+
+interface Equipo {
+  id: string;
+  marca: string;
+  modelo: string;
+  btu: number;
+  ubicacion: string;
+  instalado: string;
+  garantia: string;
+}
+
+interface Cita {
+  id: string;
+  tipo: string;
+  estado: string;
+  fecha: string;
+  hora: string;
+  tecnico: string | null;
+  notas: string | null;
+  duracion: string | null;
+  precio: number | null;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [activeModal, setActiveModal] = useState<"equipos" | "servicios" | "calendario" | null>(null);
+  const [equipos, setEquipos] = useState<Equipo[]>([]);
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const proximas = MOCK_CITAS.filter((c) => c.estado !== "completada");
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.uid) return;
+    try {
+      const [eqRes, citasRes] = await Promise.all([
+        fetch(`/api/equipos?userId=${user.uid}`),
+        fetch(`/api/citas?userId=${user.uid}`),
+      ]);
+      const eqData = await eqRes.json();
+      const citasData = await citasRes.json();
+
+      if (Array.isArray(eqData)) setEquipos(eqData);
+      if (Array.isArray(citasData)) setCitas(citasData);
+    } catch (err) {
+      console.error("Error al cargar datos del dashboard:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      fetchDashboardData();
+    }
+  }, [user?.uid, fetchDashboardData]);
+
+  const proximas = citas.filter((c) => c.estado !== "completada");
   const proximaCita = proximas[0];
-  const totalEquipos = MOCK_EQUIPOS_CLIENTE.length;
+  const totalEquipos = equipos.length;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-semibold">Cargando tu resumen del hogar...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -28,7 +86,7 @@ export default function DashboardPage() {
           <div>
             <p className="font-semibold text-orange-800 text-sm">Servicio próximo agendado</p>
             <p className="text-orange-700 text-sm mt-0.5">
-              {proximaCita.tipo} — {proximaCita.equipo} el{" "}
+              {proximaCita.tipo} el{" "}
               {new Date(proximaCita.fecha).toLocaleDateString("es-CL")} a las {proximaCita.hora}
             </p>
           </div>
@@ -102,11 +160,11 @@ export default function DashboardPage() {
                 <span className="text-xs font-bold text-slate-500 uppercase">{proximaCita.estado}</span>
               </div>
               <p className="font-bold text-blue-900">{proximaCita.tipo}</p>
-              <p className="text-sm text-slate-600 mt-1">{proximaCita.equipo}</p>
+              <p className="text-sm text-slate-600 mt-1">{proximaCita.notas || "Sin detalles"}</p>
               <div className="flex items-center gap-4 mt-3 text-xs text-slate-400">
                 <span>📅 {new Date(proximaCita.fecha).toLocaleDateString("es-CL")}</span>
                 <span>⏰ {proximaCita.hora}</span>
-                <span>👷 {proximaCita.tecnico}</span>
+                <span>👷 {proximaCita.tecnico || "Pendiente asignación"}</span>
               </div>
             </div>
           ) : (
@@ -127,25 +185,34 @@ export default function DashboardPage() {
               Detalle →
             </a>
           </div>
-          <div className="space-y-4">
-            {MOCK_EQUIPOS_CLIENTE.map((eq) => (
-              <div key={eq.id} className="flex items-center justify-between gap-3 p-2 hover:bg-slate-50 rounded-xl transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0">❄️</div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{eq.marca} {eq.modelo}</p>
-                    <p className="text-xs text-slate-400 truncate">{eq.ubicacion} · {eq.btu.toLocaleString()} BTU</p>
+          {equipos.length > 0 ? (
+            <div className="space-y-4">
+              {equipos.map((eq) => (
+                <div key={eq.id} className="flex items-center justify-between gap-3 p-2 hover:bg-slate-50 rounded-xl transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0">❄️</div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{eq.marca} {eq.modelo}</p>
+                      <p className="text-xs text-slate-400 truncate">{eq.ubicacion} · {eq.btu.toLocaleString()} BTU</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 border border-green-200 text-green-700">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                      Mantenimiento Realizado
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 border border-green-200 text-green-700">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                    Mantenimiento Realizado
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-slate-400 text-sm mb-4">No tienes equipos registrados.</p>
+              <a href="/dashboard/mis-equipos" className="inline-flex items-center gap-1 bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-orange-700 transition-all">
+                ❄️ Registrar equipo
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
@@ -160,21 +227,25 @@ export default function DashboardPage() {
               <button onClick={() => setActiveModal(null)} className="text-slate-400 hover:text-slate-600 text-2xl font-bold">✕</button>
             </div>
             <div className="space-y-3">
-              {MOCK_EQUIPOS_CLIENTE.map((eq) => (
-                <div key={eq.id} className="border border-slate-200 rounded-xl p-4 hover:border-orange-500 transition-all">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-bold text-slate-800">{eq.marca} {eq.modelo}</h4>
-                      <p className="text-xs text-slate-400 mt-0.5">{eq.ubicacion}</p>
+              {equipos.length > 0 ? (
+                equipos.map((eq) => (
+                  <div key={eq.id} className="border border-slate-200 rounded-xl p-4 hover:border-orange-500 transition-all">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-bold text-slate-800">{eq.marca} {eq.modelo}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5">{eq.ubicacion}</p>
+                      </div>
+                      <span className="text-xs font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-700">{eq.btu} BTU</span>
                     </div>
-                    <span className="text-xs font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-700">{eq.btu} BTU</span>
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                      <p>📅 Instalado: <span className="font-bold">{new Date(eq.instalado).toLocaleDateString("es-CL")}</span></p>
+                      <p>🛡️ Cobertura: <span className="font-bold text-green-600">{new Date(eq.garantia).toLocaleDateString("es-CL")}</span></p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
-                    <p>📅 Instalado: <span className="font-bold">{new Date(eq.instalado).toLocaleDateString("es-CL")}</span></p>
-                    <p>🛡️ Garantía: <span className="font-bold text-green-600">{eq.estadoGarantia}</span></p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-slate-400 py-6">No tienes equipos registrados.</p>
+              )}
             </div>
           </div>
         </div>
@@ -196,7 +267,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-slate-800 text-sm">{cita.tipo}</h4>
-                        <p className="text-xs text-slate-500 mt-0.5">{cita.equipo}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{cita.notas || "Sin notas"}</p>
                       </div>
                       <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 capitalize">
                         {cita.estado}
@@ -205,7 +276,7 @@ export default function DashboardPage() {
                     <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
                       <span>📅 {new Date(cita.fecha).toLocaleDateString("es-CL")}</span>
                       <span>⏰ {cita.hora}</span>
-                      <span>👷 Técnico: {cita.tecnico}</span>
+                      <span>👷 Técnico: {cita.tecnico || "Por asignar"}</span>
                     </div>
                   </div>
                 ))
@@ -243,8 +314,8 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm text-slate-700 border border-slate-100">
                   <p><strong>Servicio:</strong> {proximaCita.tipo}</p>
-                  <p><strong>Ubicación:</strong> {proximaCita.equipo}</p>
-                  <p><strong>Técnico:</strong> {proximaCita.tecnico}</p>
+                  <p><strong>Detalle:</strong> {proximaCita.notas || "Sin detalles"}</p>
+                  <p><strong>Técnico:</strong> {proximaCita.tecnico || "Pendiente de asignación"}</p>
                 </div>
               </div>
             ) : (

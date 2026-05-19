@@ -1,26 +1,68 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-const MAINTENANCE_JOBS = [
-  { id: "job-1", equipo: "Samsung Wind-Free Premium 12000 BTU", cliente: "Ana García", tecnico: "Roberto Pizarro", ubicacion: "Las Condes 1230, Apto 502", estado: "completado" },
-  { id: "job-2", equipo: "LG Dual Inverter ARTCOOL 18000 BTU", cliente: "Carlos Mendoza", tecnico: "Patricia Jara", ubicacion: "Av. Irarrázaval 3450, Casa 4", estado: "en_curso" },
-  { id: "job-3", equipo: "Midea Xtreme Save Pro 9000 BTU", cliente: "Pedro Fuentes", tecnico: "Marcelo Soto", ubicacion: "Providencia 890, Apto 101", estado: "no_iniciado" },
-  { id: "job-4", equipo: "Samsung Cassette 360 36000 BTU", cliente: "María López", tecnico: "Roberto Pizarro", ubicacion: "Alameda 2300, Local 12", estado: "nuevo" },
-  { id: "job-5", equipo: "LG Premium Split 12000 BTU", cliente: "Juan Riquelme", tecnico: "Claudia Rojas", ubicacion: "Vitacura 5600, Casa 12", estado: "en_curso" },
-];
+interface Cita {
+  id: string;
+  tipo: string;
+  estado: string;
+  fecha: string;
+  hora: string;
+  tecnico: string | null;
+  notas: string | null;
+  duracion: string | null;
+  precio: number | null;
+  userId: string;
+}
 
 export default function InventarioPage() {
   const [search, setSearch] = useState("");
   const [activeStatusModal, setActiveStatusModal] = useState<string | null>(null);
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filtramos por equipo, cliente o técnico
-  const filteredJobs = MAINTENANCE_JOBS.filter(job =>
-    job.equipo.toLowerCase().includes(search.toLowerCase()) ||
-    job.cliente.toLowerCase().includes(search.toLowerCase()) ||
-    job.tecnico.toLowerCase().includes(search.toLowerCase())
+  const fetchCitas = useCallback(async () => {
+    try {
+      const res = await fetch("/api/citas");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setCitas(data);
+      }
+    } catch (err) {
+      console.error("Error al cargar citas de inventario:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCitas();
+  }, [fetchCitas]);
+
+  // Mapeamos los datos reales a la estructura visual de trabajos
+  const jobs = citas.map((c) => {
+    let estadoJob = "nuevo";
+    if (c.estado === "completada") estadoJob = "completado";
+    else if (c.estado === "confirmada") estadoJob = "en_curso";
+    else if (c.estado === "pendiente") estadoJob = "no_iniciado";
+
+    return {
+      id: c.id,
+      equipo: c.notas || c.tipo,
+      cliente: `Cliente (${c.userId.slice(-5).toUpperCase()})`,
+      tecnico: c.tecnico || "Sin asignar",
+      ubicacion: `Comuna asociada al Cliente (ID: ${c.userId.slice(-5).toUpperCase()})`,
+      estado: estadoJob,
+    };
+  });
+
+  const filteredJobs = jobs.filter(
+    (job) =>
+      job.equipo.toLowerCase().includes(search.toLowerCase()) ||
+      job.cliente.toLowerCase().includes(search.toLowerCase()) ||
+      job.tecnico.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getJobsByStatus = (status: string) => MAINTENANCE_JOBS.filter(j => j.estado === status);
+  const getJobsByStatus = (status: string) => jobs.filter((j) => j.estado === status);
 
   const counts = {
     completado: getJobsByStatus("completado").length,
@@ -30,14 +72,28 @@ export default function InventarioPage() {
   };
 
   const getStatusLabel = (status: string) => {
-    switch(status) {
-      case "completado": return "Equipos Completados";
-      case "en_curso": return "En Curso";
-      case "no_iniciado": return "No Iniciados";
-      case "nuevo": return "Nuevos";
-      default: return "";
+    switch (status) {
+      case "completado":
+        return "Equipos Completados";
+      case "en_curso":
+        return "En Curso";
+      case "no_iniciado":
+        return "No Iniciados";
+      case "nuevo":
+        return "Nuevos";
+      default:
+        return "";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-semibold">Cargando seguimiento de equipos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
@@ -48,10 +104,10 @@ export default function InventarioPage() {
         </div>
       </div>
 
-      {/* Tarjetas rápidas (clicables para abrir popup) */}
+      {/* Tarjetas rápidas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Completados */}
-        <button 
+        <button
           onClick={() => setActiveStatusModal("completado")}
           className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 group"
         >
@@ -64,7 +120,7 @@ export default function InventarioPage() {
         </button>
 
         {/* En curso */}
-        <button 
+        <button
           onClick={() => setActiveStatusModal("en_curso")}
           className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 group"
         >
@@ -77,7 +133,7 @@ export default function InventarioPage() {
         </button>
 
         {/* No iniciados */}
-        <button 
+        <button
           onClick={() => setActiveStatusModal("no_iniciado")}
           className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 group"
         >
@@ -90,7 +146,7 @@ export default function InventarioPage() {
         </button>
 
         {/* Nuevos */}
-        <button 
+        <button
           onClick={() => setActiveStatusModal("nuevo")}
           className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 group"
         >
@@ -107,27 +163,36 @@ export default function InventarioPage() {
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
           <span className="text-slate-400 text-sm">🔍</span>
-          <input 
-            value={search} 
-            onChange={e => setSearch(e.target.value)} 
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por equipo, cliente o técnico a cargo..."
-            className="flex-1 outline-none text-sm text-slate-800 placeholder-slate-400 bg-transparent font-medium" 
+            className="flex-1 outline-none text-sm text-slate-800 placeholder-slate-400 bg-transparent font-medium"
           />
           <span className="text-xs text-slate-400 font-bold">{filteredJobs.length} resultados</span>
         </div>
 
         <div className="divide-y divide-slate-150">
-          {filteredJobs.map(job => (
-            <div key={job.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
+          {filteredJobs.map((job) => (
+            <div
+              key={job.id}
+              className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors"
+            >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-slate-800 text-sm">{job.equipo}</h3>
-                  <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
-                    job.estado === 'completado' ? 'bg-green-100 text-green-700' :
-                    job.estado === 'en_curso' ? 'bg-blue-100 text-blue-700' :
-                    job.estado === 'no_iniciado' ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {job.estado.replace("_", " ")}
+                  <span
+                    className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                      job.estado === "completado"
+                        ? "bg-green-100 text-green-700"
+                        : job.estado === "en_curso"
+                        ? "bg-blue-100 text-blue-700"
+                        : job.estado === "no_iniciado"
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {job.estado}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500">
@@ -155,7 +220,12 @@ export default function InventarioPage() {
               <h3 className="font-black text-xl text-blue-950 flex items-center gap-2">
                 <span>📋</span> {getStatusLabel(activeStatusModal)}
               </h3>
-              <button onClick={() => setActiveStatusModal(null)} className="text-slate-400 hover:text-slate-600 text-2xl font-bold">✕</button>
+              <button
+                onClick={() => setActiveStatusModal(null)}
+                className="text-slate-400 hover:text-slate-600 text-2xl font-bold font-sans"
+              >
+                ✕
+              </button>
             </div>
             <div className="space-y-4">
               {getJobsByStatus(activeStatusModal).length > 0 ? (

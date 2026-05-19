@@ -52,10 +52,10 @@ export default function AsignacionesPage() {
       if (Array.isArray(techData)) setTecnicos(techData);
       if (Array.isArray(citasData)) {
         // Mapear campos de base de datos a formato de UI
-        setCitas(citasData.map((c: { id: string; tipo: string; equipo?: string; tecnico?: string; fecha: string; hora: string; estado: string }) => ({
+        setCitas(citasData.map((c: { id: string; tipo: string; notas?: string; tecnico?: string; fecha: string; hora: string; estado: string }) => ({
           id: c.id,
           tipo: c.tipo,
-          equipo: c.equipo || "Equipo General",
+          equipo: c.notas || "Equipo General",
           tecnico: c.tecnico || null,
           fecha: c.fecha,
           hora: c.hora,

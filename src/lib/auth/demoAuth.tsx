@@ -15,36 +15,15 @@ interface AuthContextType {
   user: DemoUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signUp: (form: { nombre: string; email: string; telefono: string; password: string }) => Promise<{ ok: boolean; error?: string }>;
   signOut: () => void;
 }
-
-const DEMO_ACCOUNTS: Record<string, { password: string; user: DemoUser }> = {
-  "demo@cliente.cl": {
-    password: "demo1234",
-    user: {
-      uid: "demo-client-001",
-      email: "demo@cliente.cl",
-      nombre: "Carlos Mendoza",
-      rol: "cliente",
-      avatar: "CM",
-    },
-  },
-  "admin@hvac.cl": {
-    password: "admin2024",
-    user: {
-      uid: "demo-admin-001",
-      email: "admin@hvac.cl",
-      nombre: "Valentina Torres",
-      rol: "admin",
-      avatar: "VT",
-    },
-  },
-};
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signIn: async () => ({ ok: false }),
+  signUp: async () => ({ ok: false }),
   signOut: () => {},
 });
 
@@ -61,12 +40,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const account = DEMO_ACCOUNTS[email.toLowerCase()];
-    if (!account) return { ok: false, error: "Usuario no encontrado." };
-    if (account.password !== password) return { ok: false, error: "Contraseña incorrecta." };
-    localStorage.setItem("hvac_demo_user", JSON.stringify(account.user));
-    setUser(account.user);
-    return { ok: true };
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { ok: false, error: data.error || "Credenciales incorrectas" };
+      }
+      localStorage.setItem("hvac_demo_user", JSON.stringify(data));
+      setUser(data);
+      return { ok: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: msg };
+    }
+  };
+
+  const signUp = async (form: { nombre: string; email: string; telefono: string; password: string }) => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { ok: false, error: data.error || "Error al registrar usuario" };
+      }
+      localStorage.setItem("hvac_demo_user", JSON.stringify(data));
+      setUser(data);
+      return { ok: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: msg };
+    }
   };
 
   const signOut = () => {
@@ -75,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
